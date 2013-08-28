@@ -82,6 +82,8 @@ public class MyGarage extends SherlockFragment {
 	
 	private SharedPreferences sharedPreferences;
 
+	private static final String TAG = "MyGarage";
+
 	private final String sensorType = "car";
 	private String carFuelType;
 	private String carModel;
