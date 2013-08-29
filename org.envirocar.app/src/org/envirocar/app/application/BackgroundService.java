@@ -363,6 +363,7 @@ public class BackgroundService extends Service {
                 // successful connection or an exception
                 socket.connect();
             } catch (IOException e) {
+            	logger.severe(e.getMessage(), e);
                 // Close the socket
                 try {
                     socket.close();
