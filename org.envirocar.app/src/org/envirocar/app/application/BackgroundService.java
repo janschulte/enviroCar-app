@@ -140,20 +140,11 @@ public class BackgroundService extends Service {
 
 		// Connect to bluetooth device
 
-		bluetoothSocket = bluetoothDevice
-				.createRfcommSocketToServiceRecord(MY_UUID);
-
-		bluetoothSocket.connect();
+		ConnectThread t = new ConnectThread(bluetoothDevice, true);
+		t.start();
 		
 		((ECApplication) getApplication()).createNewTrackIfNecessary();
 
-		addCommandToWaitingList(new ObdReset());
-		addCommandToWaitingList(new EchoOff());
-		addCommandToWaitingList(new EchoOff());
-		addCommandToWaitingList(new LineFeedOff());
-		addCommandToWaitingList(new Timeout(62));
-		addCommandToWaitingList(new SelectAutoProtocol());
-		
 		/*
 		 * This is what Torque does:
 		 */
@@ -196,9 +187,6 @@ public class BackgroundService extends Service {
 		/*
 		 * End Torque
 		 */
-
-		// Service is running..
-		isTheServiceRunning.set(true);
 
 		// Set waiting list execution counter
 		counter = 0L;
@@ -318,5 +306,75 @@ public class BackgroundService extends Service {
 
 		isWaitingListRunning.set(false);
 	}
+	
+	private void connected() {
+		addCommandToWaitingList(new ObdReset());
+		addCommandToWaitingList(new EchoOff());
+		addCommandToWaitingList(new EchoOff());
+		addCommandToWaitingList(new LineFeedOff());
+		addCommandToWaitingList(new Timeout(62));
+		addCommandToWaitingList(new SelectAutoProtocol());
+		// Service is running..
+		isTheServiceRunning.set(true);		
+	}
+	
+   private class ConnectThread extends Thread {
+        private final BluetoothSocket socket;
+        private String socketType;
+		private BluetoothAdapter adapter;
+
+        public ConnectThread(BluetoothDevice device, boolean secure) {
+        	adapter = BluetoothAdapter.getDefaultAdapter();
+   		 // Unique UUID for this application
+            BluetoothSocket tmp = null;
+            socketType = secure ? "Secure" : "Insecure";
+
+            // Get a BluetoothSocket for a connection with the
+            // given BluetoothDevice
+            
+            //for testing purposes (e.g. another android device) this uuid
+            //works, e.g. when connecting to the BluetoothChat sample app
+//            UUID uuid = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
+            UUID uuid = MY_UUID;
+            try {
+                if (secure) {
+                    tmp = device.createRfcommSocketToServiceRecord(
+                    		uuid);
+                } else {
+                    tmp = device.createInsecureRfcommSocketToServiceRecord(
+                    		uuid);
+                }
+            } catch (IOException e) {
+                logger.warn("Socket Type: " + socketType + "create() failed", e);
+            }
+            socket = tmp;
+        }
+
+        public void run() {
+            setName("ConnectThread" + socketType);
+            logger.info("Running ConnectThread");
+
+            // Always cancel discovery because it will slow down a connection
+            adapter.cancelDiscovery();
+
+            // Make a connection to the BluetoothSocket
+            try {
+                // This is a blocking call and will only return on a
+                // successful connection or an exception
+                socket.connect();
+            } catch (IOException e) {
+                // Close the socket
+                try {
+                    socket.close();
+                } catch (IOException e2) {
+                    logger.warn(e2.getMessage(), e2);
+                }
+                return;
+            }
+
+            connected();
+        }
+    }
+
 
 }
