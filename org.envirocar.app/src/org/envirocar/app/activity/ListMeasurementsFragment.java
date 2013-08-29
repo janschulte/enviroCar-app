@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.envirocar.app.R;
@@ -44,7 +43,6 @@ import org.envirocar.app.storage.DbAdapter;
 import org.envirocar.app.storage.DbAdapterRemote;
 import org.envirocar.app.storage.Measurement;
 import org.envirocar.app.storage.Track;
-import org.envirocar.app.util.AndroidUtil;
 import org.envirocar.app.views.TypefaceEC;
 import org.envirocar.app.views.Utils;
 import org.json.JSONArray;
@@ -87,6 +85,7 @@ import de.keyboardsurfer.android.widget.crouton.Style;
  */
 public class ListMeasurementsFragment extends SherlockFragment {
 	
+	ECApplication application;
 
 	// Measurements and tracks
 	
@@ -109,6 +108,7 @@ public class ListMeasurementsFragment extends SherlockFragment {
 			android.view.ViewGroup container,
 			android.os.Bundle savedInstanceState) {
 		
+		application = ((ECApplication) getActivity().getApplication()); 
 		
 		setHasOptionsMenu(true);
 
@@ -208,7 +208,7 @@ public class ListMeasurementsFragment extends SherlockFragment {
 
 		case R.id.menu_delete_all:
 			((ECApplication) getActivity().getApplication()).getDbAdapterLocal().deleteAllTracks();
-			((ECApplication) getActivity().getApplication()).resetTrack();
+			((ECApplication) getActivity().getApplication()).setTrack(null);
 			tracksList.clear();
 			downloadTracks();
 			Crouton.makeText(getActivity(), R.string.all_local_tracks_deleted,Style.CONFIRM).show();
@@ -765,13 +765,13 @@ public class ListMeasurementsFragment extends SherlockFragment {
 				try {
 					DateFormat sdf = DateFormat.getDateTimeInstance();
 					DecimalFormat twoDForm = new DecimalFormat("#.##");
-					DateFormat dfDuration = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
+					DateFormat dfDuration = new SimpleDateFormat("HH:mm:ss");
 					dfDuration.setTimeZone(TimeZone.getTimeZone("UTC"));
 					start.setText(sdf.format(currTrack.getStartTime()) + "");
 					end.setText(sdf.format(currTrack.getEndTime()) + "");
 					Date durationMillis = new Date(currTrack.getDurationInMillis());
 					duration.setText(dfDuration.format(durationMillis) + "");
-					if (!AndroidUtil.getInstance().getDefaultSharedPreferences().getBoolean(SettingsActivity.IMPERIAL_UNIT, false)) {
+					if (!application.isImperialUnits()) {
 						length.setText(twoDForm.format(currTrack.getLengthOfTrack()) + " km");
 					} else {
 						length.setText(twoDForm.format(currTrack.getLengthOfTrack()/1.6) + " miles");
