@@ -39,11 +39,8 @@ import org.json.JSONObject;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -81,8 +78,6 @@ public class MyGarage extends SherlockFragment {
 	
 	private static final Logger logger = Logger.getLogger(MyGarage.class);
 	
-	private SharedPreferences sharedPreferences;
-
 	private final String sensorType = "car";
 	private String carFuelType;
 	private String carModel;
@@ -105,8 +100,6 @@ public class MyGarage extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		
-		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		
 		View view = inflater.inflate(R.layout.my_garage_layout, null);
 		//TODO !fancy! search for sensors
